@@ -24,7 +24,6 @@ function createCard(data, onDelete, onLike, openImage) {
 
   newCardImage.addEventListener('click', function (e) {
     openImage(data.link, data.name);
-    e.preventDefault();
   });
 
 return newCard;

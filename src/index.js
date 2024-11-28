@@ -5,15 +5,17 @@ import { openPopup, closePopup, handleEscClose } from './scripts/modal.js';
 
 const cardsContainer = document.querySelector('.places__list');
 const modalWindows = document.querySelectorAll('.popup');
+const popupTypeEdit = document.querySelector('.popup_type_edit');
+const popupTypeNewCard = document.querySelector('.popup_type_new-card');
 const profileEditButton = document.querySelector('.profile__edit-button');
 const profileAddButton = document.querySelector('.profile__add-button');
 const popupTypeImage = document.querySelector('.popup_type_image');
 const popupImage = popupTypeImage.querySelector('.popup__image');
 const popupCaption = popupTypeImage.querySelector('.popup__caption');
 
-const formElement = document.forms.edit_profile;
-const nameInput = formElement.elements.name;
-const jobInput = formElement.elements.description;
+const formEditProfile = document.forms.edit_profile;
+const nameInput = formEditProfile.elements.name;
+const jobInput = formEditProfile.elements.description;
 const profileInfo = document.querySelector('.profile__info');
 const profileTitle = profileInfo.querySelector('.profile__title');
 const profileDescription = profileInfo.querySelector('.profile__description');
@@ -30,16 +32,12 @@ initialCards.forEach(initialCard => {
   });
 
 profileEditButton.addEventListener('click', function (e) {
-  const popupTypeEdit = document.querySelector('.popup_type_edit');
   openPopup(popupTypeEdit);
-  e.preventDefault();
   profileInfoForm();
 });
 
 profileAddButton.addEventListener('click', function (e) {
-  const popupTypeNewCard = document.querySelector('.popup_type_new-card');
   openPopup(popupTypeNewCard);
-  e.preventDefault();
 });
 
 modalWindows.forEach((popup) => {
@@ -57,13 +55,14 @@ function profileInfoForm() {
   jobInput.value = profileDescription.textContent;
 };
 
-function handleFormSubmit(evt) {
+function handleFormEditProfileSubmit(evt) {
   evt.preventDefault();
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = jobInput.value;
+  closePopup(document.querySelector('.popup_is-opened'));
 };
 
-formElement.addEventListener('submit', handleFormSubmit);
+formEditProfile.addEventListener('submit', handleFormEditProfileSubmit);
 
 //добавление новой карточки в начало
 const formNewPlace = document.forms.new_place;
@@ -86,6 +85,7 @@ formNewPlace.addEventListener('submit', function (event) {
 // Функция открытия модального окна с изображением
 function openImagePopup(link, name) {
   popupImage.src = link;
+  popupImage.alt = name;
   popupCaption.textContent = name;
   openPopup(popupTypeImage);
 };
