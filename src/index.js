@@ -59,7 +59,7 @@ function handleFormEditProfileSubmit(evt) {
   evt.preventDefault();
   profileTitle.textContent = nameInput.value;
   profileDescription.textContent = jobInput.value;
-  closePopup(document.querySelector('.popup_is-opened'));
+  closePopup(popupTypeEdit);
 };
 
 formEditProfile.addEventListener('submit', handleFormEditProfileSubmit);
@@ -78,7 +78,7 @@ formNewPlace.addEventListener('submit', function (event) {
   const card = createCard(newCardData, handleDeleteCard, handleLikeCard, openImagePopup);
   cardsContainer.prepend(card);
 
-  closePopup(document.querySelector('.popup_is-opened'));
+  closePopup(popupTypeNewCard);
   formNewPlace.reset();
 });
 

@@ -12,7 +12,8 @@ const closePopup = (popup) => {
 
 function handleEscClose(event) {
   if(event.key === 'Escape') {
-    closePopup(document.querySelector('.popup_is-opened'));
+    const openModalWindow = document.querySelector('.popup_is-opened')
+    closePopup(openModalWindow);
   }
 };
 
