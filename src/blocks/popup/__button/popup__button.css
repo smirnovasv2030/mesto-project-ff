@@ -25,3 +25,15 @@
     line-height: 17px;
   }
 }
+
+/* Стили для кнопки при отключении */
+.popup__button_disabled {
+  background-color: inherit;
+  color: #000;
+  opacity: 0.2;
+  border: 1px solid #000;
+}
+.popup__button_disabled:hover {
+  background-color: inherit;
+  cursor: default;
+}
