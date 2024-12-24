@@ -1,9 +1,10 @@
 import { data } from 'jquery';
 import './pages/index.css';
 import { getUserInfo, loadCards, updateAvatar, updateUserInfo, addCard } from './scripts/api.js';
-import { createCard, handleDeleteCard, handleLikeCard } from './scripts/card.js';
+import { createCard, handleDeleteCard } from './scripts/card.js';
 import { openPopup, closePopup, handleEscClose } from './scripts/modal.js';
-import { enableValidation, showError, hideError, clearValidation, hasInvalidInput, toggleButtonState } from './scripts/validation.js';
+import { enableValidation, showError, hideError, clearValidation, hasInvalidInput, toggleButtonState, areInputsEmpty } from './scripts/validation.js';
+import { deleteCard, likeCard } from './scripts/api.js';
 
 const cardsContainer = document.querySelector('.places__list');
 const modalWindows = document.querySelectorAll('.popup');
@@ -26,15 +27,21 @@ const profileDescription = profileInfo.querySelector('.profile__description');
 
 const formEditAvatar = document.forms.edit_avatar;
 const linkAvatarInput = formEditAvatar.elements.link_avatar;
+const editAvatarButton = formEditAvatar.querySelector('.popup__button');
+const formAvatarElement = popupTypeEditAvatar.querySelector('.popup__form');
 
 const formNewPlace = document.forms.new_place;
 const placeNameInput = formNewPlace.elements.place_name;
 const linkInput = formNewPlace.elements.link;
+const formNewPlacebutton = formNewPlace.querySelector('.popup__button');
+
+let currentUserId;
 
 // Функция для загрузки данных пользователя, аватара и карточек параллельно
 function loadUserData() {
   return Promise.all([getUserInfo(), loadCards()])
     .then(([userData, initialCards]) => {
+      currentUserId = userData._id;
       profileTitle.textContent = userData.name;
       profileDescription.textContent = userData.about;
       profileAvatarEditButton.style.backgroundImage = `url("${userData.avatar}")`;
@@ -48,7 +55,7 @@ loadUserData();
 
 // Функция для рендеринга карточек
 function renderCard(card) {
-  const cardElement = createCard(card, handleDeleteCard, handleLikeCard, openImagePopup);
+  const cardElement = createCard(card, handleDeleteCard, likeCard, openImagePopup, currentUserId);
   cardsContainer.append(cardElement);
 }
 
@@ -86,32 +93,30 @@ modalWindows.forEach((popup) => {
     (event) => {
       if(event.target.classList.contains('popup__close') || event.target.classList.contains('popup')) {
         closePopup(popup);
-        formNewPlace.reset();
-        formEditAvatar.reset();
     }
   });
 });
 
 // Функция для обновления аватара
 function updateAvatarHandler() {
-  const button = formEditAvatar.querySelector('.popup__button');
-  setButtonLoadingState(button, true);
-
+  setButtonLoadingState(editAvatarButton, true);
   const avatarUrl = linkAvatarInput.value;
 
   updateAvatar(avatarUrl)
   .then(data => {
     profileAvatarEditButton.style.backgroundImage = `url("${data.avatar}")`;
+    closePopup(popupTypeEditAvatar);
     formEditAvatar.reset();
+      toggleButtonState(formEditAvatar.querySelectorAll('.popup__input'), editAvatarButton, 'popup__button_disabled');
   })
-  .finally(() => setButtonLoadingState(button, false));
-
-  closePopup(popupTypeEditAvatar);
+  .catch(error => console.error('Ошибка при обновлении аватара:', error))
+  .finally(() => setButtonLoadingState(editAvatarButton, false));
 }
 
+toggleButtonState(formEditAvatar.querySelectorAll('.popup__input'), editAvatarButton, 'popup__button_disabled');
+
 // Отправка формы
-const form = document.querySelector('.popup__form');
-form.addEventListener('submit', function(event) {
+formAvatarElement.addEventListener('submit', function(event) {
   event.preventDefault();
   updateAvatarHandler();
 });
@@ -122,10 +127,10 @@ function profileInfoForm() {
   jobInput.value = profileDescription.textContent;
 };
 
+const formEditProfileButton = formEditProfile.querySelector('.popup__button');
 function handleFormEditProfileSubmit(evt) {
   evt.preventDefault();
-  const button = formEditProfile.querySelector('.popup__button');
-  setButtonLoadingState(button, true);
+  setButtonLoadingState(formEditProfileButton, true);
   updateUserInfo(nameInput.value, jobInput.value)
   .then(data => {
     profileTitle.textContent = data.name;
@@ -133,7 +138,7 @@ function handleFormEditProfileSubmit(evt) {
     closePopup(popupTypeEdit);
   })
   .catch(error => console.error('Ошибка:', error))
-  .finally(() => setButtonLoadingState(button, false));
+  .finally(() => setButtonLoadingState(formEditProfileButton, false));
 }
 
 formEditProfile.addEventListener('submit', handleFormEditProfileSubmit);
@@ -141,23 +146,24 @@ formEditProfile.addEventListener('submit', handleFormEditProfileSubmit);
 //добавление новой карточки в начало
 formNewPlace.addEventListener('submit', function (event) {
   event.preventDefault();
-  const button = formNewPlace.querySelector('.popup__button');
-  setButtonLoadingState(button, true);
+
+  setButtonLoadingState(formNewPlacebutton, true);
   const newCardData = {
     name: placeNameInput.value,
     link: linkInput.value
   };
   addCard(newCardData)
   .then(newCardData => {
-  const card = createCard(newCardData, handleDeleteCard, handleLikeCard, openImagePopup);
+  const card = createCard(newCardData, handleDeleteCard, likeCard, openImagePopup, currentUserId);
   cardsContainer.prepend(card);
   closePopup(popupTypeNewCard);
   formNewPlace.reset();
-  toggleButtonState(formNewPlace.querySelectorAll('.popup__input'), formNewPlace.querySelector('.popup__button'), 'popup__button_disabled');
+  toggleButtonState(formNewPlace.querySelectorAll('.popup__input'), formNewPlacebutton, 'popup__button_disabled');
   })
-  .finally(() => setButtonLoadingState(button, false));
+  .catch(error => console.error('Ошибка:', error))
+  .finally(() => setButtonLoadingState(formNewPlacebutton, false));
 });
-toggleButtonState(formNewPlace.querySelectorAll('.popup__input'), formNewPlace.querySelector('.popup__button'), 'popup__button_disabled');
+toggleButtonState(formNewPlace.querySelectorAll('.popup__input'), formNewPlacebutton, 'popup__button_disabled');
 
 // Функция открытия модального окна с изображением
 function openImagePopup(link, name) {
@@ -183,7 +189,7 @@ function setButtonLoadingState(buttonElement, isLoading) {
     buttonElement.textContent = 'Сохранение...';
     buttonElement.disabled = true;
   } else {
-    buttonElement.textContent = 'Сохранить'; // Или исходный текст кнопки
+    buttonElement.textContent = 'Сохранить';
     buttonElement.disabled = false;
   }
 }

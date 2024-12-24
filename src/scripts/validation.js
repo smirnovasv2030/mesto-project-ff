@@ -67,7 +67,7 @@ function hasInvalidInput(inputList) {
 
 // Функция для переключения состояния кнопки
 function toggleButtonState(inputList, buttonElement, inactiveButtonClass) {
-  if (hasInvalidInput(inputList)) {
+  if (hasInvalidInput(inputList) || areInputsEmpty(inputList)) {
     buttonElement.classList.add(inactiveButtonClass);
     buttonElement.disabled = true;
   } else {
@@ -76,6 +76,13 @@ function toggleButtonState(inputList, buttonElement, inactiveButtonClass) {
   }
 }
 
-export { enableValidation, showError, hideError, clearValidation, hasInvalidInput, toggleButtonState }
+// Функция для проверки, когда инпуты пустые
+function areInputsEmpty(inputList) {
+  return Array.from(inputList).every((inputElement) => {
+    return inputElement.value === ''; // Пусто ли поле
+  });
+}
+
+export { enableValidation, showError, hideError, clearValidation, hasInvalidInput, toggleButtonState, areInputsEmpty }
 
 

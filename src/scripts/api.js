@@ -14,8 +14,12 @@ export function getUserInfo() {
   return fetch(`${config.baseUrl}/users/me`, {
     headers: config.headers
   })
-  .then(res => res.json())
-  .catch(error => console.error('Error:', error));
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Ошибка получения информации о пользователе');
+    }
+    return res.json();
+  });
 }
 
 // Функция для загрузки карточек
@@ -23,8 +27,12 @@ export function loadCards() {
   return fetch(`${config.baseUrl}/cards`, {
     headers: config.headers
   })
-  .then(res => res.json())
-  .catch(error => console.error('Error:', error));
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Ошибка загрузки карточек');
+    }
+    return res.json();
+  });
 }
 
 // Функция для обновления аватара
@@ -39,8 +47,7 @@ export function updateAvatar(avatarUrl) {
       throw new Error('Ошибка при обновлении аватара: ' + res.statusText);
     }
     return res.json();
-  })
-  .catch(error => console.error('Error:', error));
+  });
 }
 
 // Функция для обновления информации о пользователе
@@ -50,8 +57,12 @@ export function updateUserInfo(name, about) {
     headers: config.headers,
     body: JSON.stringify({ name, about })
   })
-  .then(res => res.json())
-  .catch(error => console.error('Ошибка:', error));
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Ошибка при обновлении информации о пользователе');
+    }
+    return res.json();
+  });
 }
 
 //Функция для добавления карточки
@@ -66,8 +77,7 @@ export function addCard(newCardData) {
       throw new Error('Ошибка при добавлении карточки');
     }
     return res.json();
-  })
-  .catch(error => console.error('Error:', error));
+  });
 }
 
 // Функция для удаления карточки
@@ -78,11 +88,10 @@ export function deleteCard(cardId) {
   })
   .then(res => {
     if (!res.ok) {
-      throw new Error('Error deleting card');
+      throw new Error('Ошибка при удалении карточки');
     }
-    return res;
-  })
-  .catch(error => console.error('Error:', error));
+    return res.json();
+  });
 }
 
 // Функция для отправки PUT/DELETE-запросов для лайков
@@ -93,9 +102,8 @@ export function likeCard(method, cardId) {
   })
   .then(res => {
     if (!res.ok) {
-      throw new Error('Error liking card');
+      throw new Error('Ошибка при лайке карточки');
     }
-    return res;
-  })
-  .catch(error => console.error('Error:', error));
+    return res.json();
+  });
 }
